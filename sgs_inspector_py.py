@@ -16,7 +16,7 @@ import random
 # Configuration
 st.set_page_config(page_title="SGS Inspector Dashboard", layout="wide")
 
-# --- Header ---
+# --- Titre ---
 st.title("📊 Tableau de bord - Inspections SGS (Données simulées)")
 st.markdown("Ce tableau de bord présente une visualisation fictive de l'activité d'inspection. Les données sont simulées à des fins de démonstration.")
 
@@ -34,9 +34,9 @@ def generate_data():
         client = random.choice(clients)
         region = random.choice(regions)
         secteur = random.choice(secteurs)
-        conformité = random.choices(["Conforme", "Non conforme"], weights=[0.8, 0.2])[0]
-        durée = round(random.uniform(1, 5), 2)
-        data.append([date, client, région, secteur, conformité, durée])
+        conformite = random.choices(["Conforme", "Non conforme"], weights=[0.8, 0.2])[0]
+        duree = round(random.uniform(1, 5), 2)
+        data.append([date, client, region, secteur, conformite, duree])
 
     df = pd.DataFrame(data, columns=["Date", "Client", "Région", "Secteur", "Statut conformité", "Durée (jours)"])
     df["Mois"] = df["Date"].dt.to_period("M").astype(str)
@@ -47,26 +47,26 @@ df = generate_data()
 # --- Filtres ---
 with st.sidebar:
     st.header("🎯 Filtres")
-    region_filter = st.multiselect("Région", options=df["Région"].unique(), default=df["Région"].unique())
-    secteur_filter = st.multiselect("Secteur", options=df["Secteur"].unique(), default=df["Secteur"].unique())
-    statut_filter = st.multiselect("Statut conformité", options=df["Statut conformité"].unique(), default=df["Statut conformité"].unique())
+    selected_regions = st.multiselect("Région", options=df["Région"].unique(), default=df["Région"].unique())
+    selected_secteurs = st.multiselect("Secteur", options=df["Secteur"].unique(), default=df["Secteur"].unique())
+    selected_statuts = st.multiselect("Statut conformité", options=df["Statut conformité"].unique(), default=df["Statut conformité"].unique())
 
 df_filtered = df[
-    df["Région"].isin(region_filter) &
-    df["Secteur"].isin(secteur_filter) &
-    df["Statut conformité"].isin(statut_filter)
+    (df["Région"].isin(selected_regions)) &
+    (df["Secteur"].isin(selected_secteurs)) &
+    (df["Statut conformité"].isin(selected_statuts))
 ]
 
 # --- KPI ---
 col1, col2, col3 = st.columns(3)
 col1.metric("📦 Nombre d'inspections", len(df_filtered))
-col2.metric("✅ Taux de conformité", f"{(df_filtered['Statut conformité'].value_counts(normalize=True).get('Conforme', 0)*100):.1f}%")
+conform_rate = df_filtered["Statut conformité"].value_counts(normalize=True).get("Conforme", 0)
+col2.metric("✅ Taux de conformité", f"{conform_rate*100:.1f}%")
 col3.metric("⏱️ Durée moyenne (jours)", f"{df_filtered['Durée (jours)'].mean():.2f}")
 
 # --- Graphiques ---
 st.subheader("📈 Évolution mensuelle des inspections")
-fig1 = px.histogram(df_filtered, x="Mois", color="Statut conformité", barmode="group",
-                    title="Nombre d'inspections par mois")
+fig1 = px.histogram(df_filtered, x="Mois", color="Statut conformité", barmode="group", title="Nombre d'inspections par mois")
 st.plotly_chart(fig1, use_container_width=True)
 
 st.subheader("📍 Répartition par région")
@@ -74,9 +74,12 @@ fig2 = px.pie(df_filtered, names="Région", title="Inspections par région")
 st.plotly_chart(fig2, use_container_width=True)
 
 st.subheader("🔍 Répartition par secteur")
-fig3 = px.bar(df_filtered["Secteur"].value_counts().reset_index(),
-              x="index", y="Secteur", title="Nombre d'inspections par secteur",
-              labels={"index": "Secteur", "Secteur": "Nombre"})
+fig3 = px.bar(
+    df_filtered["Secteur"].value_counts().reset_index(),
+    x="index", y="Secteur",
+    title="Nombre d'inspections par secteur",
+    labels={"index": "Secteur", "Secteur": "Nombre"}
+)
 st.plotly_chart(fig3, use_container_width=True)
 
 # --- Tableau brut ---
@@ -85,4 +88,4 @@ with st.expander("📄 Voir les données sources"):
 
 # --- Footer ---
 st.markdown("---")
-st.markdown("Démo réalisée dans le cadre d'une candidature spontanée chez SGS Cameroun. Données simulées.")
+st.markdown("🔧 Démo réalisée dans le cadre d'une candidature spontanée chez **SGS Cameroun**. Données simulées.")
