@@ -36,7 +36,7 @@ def generate_data():
         secteur = random.choice(secteurs)
         conformité = random.choices(["Conforme", "Non conforme"], weights=[0.8, 0.2])[0]
         durée = round(random.uniform(1, 5), 2)
-        data.append([date, client, région, secteur, conformité, durée])
+        data.append([date, client, region, secteur, conformité, durée])
 
     df = pd.DataFrame(data, columns=["Date", "Client", "Region", "Secteur", "Statut conformité", "Durée (jours)"])
     df["Mois"] = df["Date"].dt.to_period("M").astype(str)
